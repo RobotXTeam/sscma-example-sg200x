@@ -8,3 +8,20 @@
 # User files
 *.swp
 *.swo
+
+# Ignore all build directories at any level
+**/build/
+
+# Ignore model directories at any level
+**/model/
+**/models/
+
+# Ignore model files
+*.cvimodel
+*.onnx
+*.pt
+*.pth
+
+# Ignore Python cache
+__pycache__/
+*.pyc
