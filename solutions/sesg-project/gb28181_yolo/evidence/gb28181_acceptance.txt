@@ -1,0 +1,12 @@
+=== GB/T 28181 国标 AI IPC 验收日志 ===
+设备: reCamera (192.168.2.249) --GB28181--> SRS 国标平台 (192.168.2.113)
+
+[SIP]    REGISTER 成功 (TCP 5060)，设备 GBID=34020000001320000001, SRS域=34020000002000000001, realm=3402000000
+[INVITE] SRS 主动 INVITE，设备回 100 Trying + 200 OK (SDP: sendonly, PS/90000, y=ssrc)
+[媒体]   设备拉本地带框 H.264 -> 手写 PS(Program Stream) 封装 -> RTP(PT=96) -> RFC4571(2字节长度前缀) -> TCP 连 SRS:9000
+[SRS]    收到国标流，转 RTMP: stream=/live/34020000001320000001, H264 Baseline 1280x720, drop=0
+[验收]   SRS HTTP-FLV/RTMP 拉流录制成功，画面含 YOLO 检测框 (32/45 抽样帧含框)
+
+PS 封装: 自写 MPEG Program Stream muxer (pack header 0xBA + system header 0xBB + PSM 0xBC + PES 0xE0)
+SIP 库:  eXosip2 5.3.0 + osip2 5.3.1 (riscv64-musl 交叉编译)
+说明: SRS 端偶发 write_h264_ipb_frame errno=11 (EAGAIN 流控回退，非致命，不影响录制画面)
