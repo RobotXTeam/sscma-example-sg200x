@@ -36,6 +36,15 @@ reCamera (rtmp_yolo)                                seeed / 流媒体服务器
 - 模型路径：`/reCamera_Shared/Wiki/rtmp_yolo/model/`
   - `yolo11n_detection_cv181x_int8.cvimodel` — YOLO11n 检测（COCO 80 类，cv181x INT8，设备自带）
 
+## 快速运行（开箱即跑，无需编译）
+
+从 Google Drive 拉运行包：
+
+- 运行包：`/reCamera_Shared/Wiki/rtmp_yolo/run/`（`rtmp_yolo` 可执行 + `run_rtmp.sh` + `README.md`）
+- 模型：`/reCamera_Shared/Wiki/rtmp_yolo/model/`
+
+把 `run/` 和 `model/` 拉到 reCamera 同一目录，按 `run/README.md` 跑即可。
+
 ## 编译
 
 ```bash

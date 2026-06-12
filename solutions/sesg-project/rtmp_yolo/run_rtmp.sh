@@ -34,10 +34,12 @@ YOLO_PID=$!
 sleep 5
 
 # relay 循环：断线自动重连，直到 detection 进程退出
+# 注意：ffmpeg 必须用 env -u LD_LIBRARY_PATH 清掉本脚本设的库路径，
+# 否则会加载到 /mnt/system 里与系统 ffmpeg 不兼容的 libavfilter.so.7（symbol not found）。
 echo "[run_rtmp] starting ffmpeg RTSP->RTMP relay -> $RTMP_URL"
 (
   while kill -0 "$YOLO_PID" 2>/dev/null; do
-    ffmpeg -rtsp_transport tcp -i rtsp://127.0.0.1:8554/live -c copy -f flv "$RTMP_URL"
+    env -u LD_LIBRARY_PATH ffmpeg -rtsp_transport tcp -i rtsp://127.0.0.1:8554/live -c copy -f flv "$RTMP_URL"
     echo "[run_rtmp] relay exited, retry in 2s..."
     sleep 2
   done

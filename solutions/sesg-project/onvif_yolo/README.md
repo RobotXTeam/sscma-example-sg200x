@@ -31,6 +31,15 @@ reCamera 上的 **ONVIF + YOLO AI IPC** 演示：单进程 C++ 程序，把 reCa
 
 > 该模型也是 reCamera 系统自带模型，位于设备 `/usr/share/supervisor/models/yolo11n_detection_cv181x_int8.cvimodel`。
 
+## 快速运行（开箱即跑，无需编译）
+
+不想编译的话，直接从 Google Drive 拉运行包：
+
+- 运行包：`/reCamera_Shared/Wiki/onvif_yolo/run/`（`onvif_yolo` 可执行 + `README.md`）
+- 模型：`/reCamera_Shared/Wiki/onvif_yolo/model/`
+
+把 `run/` 和 `model/` 拉到 reCamera 同一目录，按 `run/README.md` 跑即可，详见该说明。
+
 ## 编译
 
 ```bash

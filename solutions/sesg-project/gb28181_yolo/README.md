@@ -44,6 +44,16 @@ reCamera (gb28181_client + YOLO 引擎)                 国标平台 (SRS)
 
 > `libcares` / `libssl` / `libcrypto` 设备自带，无需下载。
 
+## 快速运行（开箱即跑，无需编译）
+
+从 Google Drive 拉运行包（含可执行 + SIP 运行时库，无需自己编译 eXosip2/osip2）：
+
+- 运行包：`/reCamera_Shared/Wiki/gb28181_yolo/run/`（`gb28181_client` + `lib/`(SIP 库) + `run_on_device.sh` + `README.md`）
+- 模型：`/reCamera_Shared/Wiki/gb28181_yolo/model/`
+- 还需 rtmp_yolo 运行包提供本地带框 RTSP：`/reCamera_Shared/Wiki/rtmp_yolo/run/`
+
+按 `run/README.md` 跑即可（注意给 `lib/` 重建软链）。
+
 ## 交叉编译
 
 ### 1) 编译 SIP 库（osip2 + eXosip2）
