@@ -1,0 +1,19 @@
+CMakeFiles/sscma-micro.dir/home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/sscma-micro/sscma-micro/3rdparty/json/cJSON/cJSON_Utils.c.o: \
+ /home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/sscma-micro/sscma-micro/3rdparty/json/cJSON/cJSON_Utils.c \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/stdc-predef.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/ctype.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/features.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/bits/alltypes.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/string.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/strings.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/stdlib.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/alloca.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/stdio.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/limits.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/bits/limits.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/math.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/float.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/bits/float.h \
+ /home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/sscma-micro/sscma-micro/3rdparty/json/cJSON/cJSON_Utils.h \
+ /home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/sscma-micro/sscma-micro/3rdparty/json/cJSON/cJSON.h \
+ /home/steven/sg2002_recamera_emmc/buildroot-2021.05/output/cvitek_CV181X_musl_riscv64/host/riscv64-buildroot-linux-musl/sysroot/usr/include/stddef.h

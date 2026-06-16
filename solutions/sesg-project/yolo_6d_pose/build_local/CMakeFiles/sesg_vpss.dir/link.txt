@@ -1,0 +1,2 @@
+/usr/bin/ar qc libsesg_vpss.a "CMakeFiles/sesg_vpss.dir/home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/SeSg/vpss/src/vpss.c.o"
+/usr/bin/ranlib libsesg_vpss.a

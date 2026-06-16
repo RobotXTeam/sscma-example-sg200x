@@ -1,0 +1,2 @@
+/usr/bin/ar qc libudp_service.a "CMakeFiles/udp_service.dir/home/steven/work/reCamera_demo/yolo_6d_pose/sscma-example-sg200x/components/SeSg/udp_service/src/udp_service.cpp.o"
+/usr/bin/ranlib libudp_service.a
