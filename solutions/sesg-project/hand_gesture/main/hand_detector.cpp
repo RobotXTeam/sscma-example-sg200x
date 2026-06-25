@@ -290,7 +290,6 @@ bool HandDetector::init(const std::string& model_path) {
      }
  
      ma_tensor_t tensor = make_input_tensor(input_type_, input_buf_, input_numel_);
-     // ⚠️ 关键：必须设置 tensor.type，否则 EngineCVI 可能用错误的 dtype 解析输入
      tensor.type = input_type_;
      tensor.quant_param = input_tensor_cache_.quant_param;
      int ret_set = engine_->setInput(0, tensor);

@@ -2,10 +2,6 @@
  * @file gesture_math.cpp
  * @brief 公共数学实现：normalize_radians、letterbox、RotatedRect 透视变换。
  *
- * 严格对齐 PC 端 `test_tflite_rtsp.py`：
- *   - normalize_radians            (Python L92-94)
- *   - letterbox(keep_aspect + 居中)  (Python L252-264)
- *   - build_rotated_roi_warp       (Python L354-378, image_to_tensor_converter_opencv.cc)
  */
 
 #include "gesture_math.h"
@@ -43,10 +39,6 @@ cv::Mat letterbox(const cv::Mat& src_rgb, int size, LetterboxPad* pad) {
         printf("[LB-DIAG] #%d src=%dx%d size=%d s=%.4f nh=%d nw=%d\n",
                lb_diag, W, H, size, s, nh, nw);
     }
-
-    // ⚠️ 诊断+修复：cv::resize + ROI paste 在某些 OpenCV 构建上可能静默失败。
-    //    改用 cv::warpAffine 一次性完成 letterbox（等比缩放 + 居中放置），
-    //    这与 udp_detector / model_detector 等工作方案一致。
     cv::Mat canvas = cv::Mat::zeros(size, size, CV_8UC3);
 
     const float sx = (float)nw / (float)W;  // x 缩放比
@@ -97,10 +89,6 @@ cv::Mat letterbox(const cv::Mat& src_rgb, int size, LetterboxPad* pad) {
     }
     return canvas;
 }
-
-// 旋转 ROI 透视变换（严格对齐 image_to_tensor_converter_opencv.cc / Python L354-378）
-//   cv::RotatedRect(center, (w_px,h_px), rot*180/π) → boxPoints 得 src 四角，
-//   dst 四角固定为 [[0,size],[0,0],[size,0],[size,size]] (bl,tl,tr,br)。
 cv::Mat build_rotated_roi_warp(const cv::Mat& src_rgb,
                                float cx_px, float cy_px,
                                float w_px, float h_px,

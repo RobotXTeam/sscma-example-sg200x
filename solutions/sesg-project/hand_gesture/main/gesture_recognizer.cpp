@@ -1,11 +1,7 @@
 /**
  * @file gesture_recognizer.cpp
- * @brief GestureEmbedder + CannedClassifier 后处理实现（坑④⑤，cvimodel 适配）。
+ * @brief GestureEmbedder + CannedClassifier 后处理实现。
  *
- * 严格对齐 PC 端 test_tflite_rtsp.py GestureRecognizer：
- *   - normalize_landmark_aspect_ratio (Python L430-439)
- *   - normalize_object                (Python L455-464)
- *   - embedder 打包（坑④: rotation=0，不旋转 landmarks，Python L466-501）
  *
  */
 
@@ -107,8 +103,6 @@ bool GestureRecognizer::prepareEmbedderInputs() {
         info->numel = numel;
     }
 
-    // cvimodel 转换裁剪了 dead inputs（world/handedness），仅保留 hand 输入（见 REPORT 4.1）。
-    // 至少找到 hand 输入即可。
     return (emb_in_hand_idx_ >= 0);
 }
 
@@ -120,7 +114,6 @@ bool GestureRecognizer::prepareClassifierInput() {
     clf_in_.type  = t.type;
     clf_in_.quant = t.quant_param;
     clf_in_.numel = shape_numel(s);
-    // classifier 输入应为 128（embedding 维度）
     return (clf_in_.numel == 128);
 }
 
@@ -190,11 +183,6 @@ bool GestureRecognizer::recognize(const HandResult& in, int img_w, int img_h, Ha
     // 调试日志降频计数器（每 100 帧打印一次，避免 printf 阻塞推理）
     static int dbg_cnt = 0;
     const bool dbg_log = ((dbg_cnt++ % 100) == 0);
-
-    // ===== (a) hand landmarks: aspect → object normalize（坑④：不旋转！）=====
-    // ⚠️ 坑④（导致"手势永远 None"的根因）：embedder 的 rotation 必须为 0。
-    //   官方 hand_gesture_recognizer_graph.cc 传入 embedder 子图的 norm_rect.rotation=0，
-    //   RotateLandmarks 是恒等变换。绝对不要把 rot 传进去旋转 landmarks。
     float hand_lm[21 * 3];
     for (int i = 0; i < 21; ++i) {
         hand_lm[i * 3 + 0] = in.landmarks[i][0];
@@ -250,11 +238,7 @@ bool GestureRecognizer::recognize(const HandResult& in, int img_w, int img_h, Ha
     auto t3 = std::chrono::high_resolution_clock::now();
     clf_ms_ = std::chrono::duration<float, std::milli>(t3 - t2).count();
 
-    // ===== 读 8 logits 并补做 softmax（REPORT 4.2：cvimodel Softmax 被截断，输出原始 logits）=====
-    //   canned_gesture_classifier 原末层为 Softmax，但 cvimodel 转换中 Softmax 被截断，
-    //   模型输出的是 logits（不是概率）。必须在 C++ 端补做 softmax：
-    //     - argmax(logits) ≡ argmax(softmax(logits))，故手势类别正确；
-    //     - 但置信度必须用 softmax 后的概率，否则 clip[0,1] 会把 logits 压成 0/1。
+
     const ma_tensor_t t_probs = clf_->getOutput(0);
     const ma_shape_t  s_probs = clf_->getOutputShape(0);
     const size_t prob_numel  = std::min(shape_numel(s_probs), (size_t)kNumGestures);

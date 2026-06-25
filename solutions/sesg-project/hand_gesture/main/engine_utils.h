@@ -1,9 +1,7 @@
 /**
  * @file engine_utils.h
  * @brief EngineCVI 通用工具：dtype 转换、shape numel、输入打包、输出读取。
- *
- * 参照 face_udp/main/age_gender_race_runner.cpp 的实现风格，提取为公共内联函数，
- * 供 4 个手势模型 runner 复用（palm/landmark/embedder/classifier）。
+
  */
 
 #pragma once
@@ -99,10 +97,6 @@ inline size_t shape_numel(const ma_shape_t& s) {
     return n;
 }
 
-// 返回 F32 输出 tensor 的只读 float 指针；非 F32 类型返回 nullptr。
-// ⚠️ 注意：reCamera 裸机运行 BF16 cvimodel 时，输出类型为 MA_TENSOR_TYPE_BF16，
-//   本函数会返回 nullptr。调用方应改用 read_val() 逐元素读取（兼容 BF16/F16/F32/S8/U8）。
-//   保留此函数仅供已确认输出为 F32 的场景使用。
 inline const float* reinterpret_to_float(const ma_tensor_t& t) {
     if (t.type == MA_TENSOR_TYPE_F32) return t.data.f32;
     return nullptr;
