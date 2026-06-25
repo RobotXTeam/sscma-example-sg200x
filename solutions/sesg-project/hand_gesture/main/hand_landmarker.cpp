@@ -22,8 +22,6 @@ namespace hand {
 
 // ===== 1. 计算旋转角（DetectionsToRectsCalculator::ComputeRotation，Python L310-319）=====
 // rotation_vector: wrist(0) → middle_mcp(2), target_angle=90°
-// ⚠️ 关键：图像 Y 轴朝下，源码为 atan2(-(y1-y0), x1-x0)（dy 带负号）
-// 旧代码漏掉负号 → ROI 旋转错误 → 关键点全错位（验收标准 4）
 float HandLandmarker::compute_rotation(const Palm& palm, int img_w, int img_h) {
     // 源码先把关键点转成像素坐标再算 atan2
     const float x0 = palm.kpts[0][0] * (float)img_w;  // wrist x
@@ -32,16 +30,13 @@ float HandLandmarker::compute_rotation(const Palm& palm, int img_w, int img_h) {
     const float y1 = palm.kpts[2][1] * (float)img_h;  // middle_mcp y
 
     constexpr float kPi = 3.14159265358979323846f;
-    // ⚠️ Y 轴朝下，dy 必须带负号：atan2(-(y1-y0), (x1-x0))
+    // Y 轴朝下，dy 必须带负号：atan2(-(y1-y0), (x1-x0))
     const float rot = normalize_radians(kPi * 0.5f -
                                         std::atan2(-(y1 - y0), (x1 - x0)));
     return rot;
 }
 
-// ===== 3. RectTransformationCalculator（Python L328-349, 坑②）=====
-// 参数: scale_x=2.6, scale_y=2.6, shift_y=-0.5, square_long=true
-// ⚠️ 顺序必须为: shift(用原始 w/h) → square_long → scale
-//    旧代码先 scale 再 shift，且 shift 公式未考虑宽高比 → ROI 中心错误
+//  顺序必须为: shift(用原始 w/h) → square_long → scale
 RotatedRectNorm HandLandmarker::transform_rect(const Palm& palm, float rot,
                                                int img_w, int img_h) {
     // ===== 2. Palm box → 归一化 rect（DetectionsToRectsCalculator, USE_BOUNDING_BOX）=====
@@ -168,7 +163,7 @@ bool HandLandmarker::init(const std::string& model_path) {
 
     // ===== 5. 按 dtype 打包输入（Python: roi = (roi/255)[None]）=====
     //    注意：reCamera 取出即 RGB，无需 BGR→RGB 转换（与 Python 端 cv2 BGR 不同！）
-    //    ⚠️ 关键坑（同 hand_detector.cpp 坑⑨）：当输入是 U8/S8 且 quant_param
+    //    当输入是 U8/S8 且 quant_param
     //    为默认值时，说明 TPU 侧 fuse 了预处理，应走 raw passthrough（填原始像素）。
     //    否则做 /255 归一化再量化回 U8 会把输入压成接近全 0 → 输出恒定/无效。
     const int Hi = input_h_;

@@ -2,7 +2,6 @@
  * @file hand_landmarker.h
  * @brief 手部 21 关键点检测 (224×224, 旋转 ROI)。
  *
- * 严格对齐 PC 端 `test_tflite_rtsp.py` HandLandmarker（坑①②③）。
  */
 
 #pragma once

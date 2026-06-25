@@ -32,10 +32,6 @@ float HandDetector::calc_scale(float min_scale, float max_scale,
 }
 
 // 对齐 ssd_anchors_calculator.cc::GenerateAnchors（Python L118-176）
-// ⚠️ 坑⑥（导致"关键点不动"的真正根因）：strides=[8,16,16,16]，相同 stride 的层必须合并！
-//   layer0(stride=8)单独一组；layer1/2/3(stride=16)合并为一组。
-//   每组在每个特征图 cell 依次输出该组所有 (scale, aspect_ratio) 对（含 interpolated scale）。
-//   不能把 4 层当 4 个独立网格顺序排。fixed_anchor_size=true → w=h=1（解码时 aw=ah=1）。
 std::vector<std::pair<float, float>> HandDetector::generate_anchors() {
     const int num_layers = 4;
     const float min_scale = 0.1484375f;
@@ -412,8 +408,6 @@ bool HandDetector::init(const std::string& model_path) {
      std::vector<Palm> empty;
  
      // 1) 读输出：用「总元素数 numel」识别 boxes / scores。
-     //    ⚠️ 坑⑧：cvimodel 输出 shape 可能带末尾冗余维度，用 numel 判别最稳妥。
-     //    ⚠️ 坑⑨：若 TPU 侧 fuse 预处理，输入 U8 + quant 默认值，必须 raw passthrough。
      if (n_out < 2) return empty;
  
      std::vector<float> boxes_vec, scores_vec;

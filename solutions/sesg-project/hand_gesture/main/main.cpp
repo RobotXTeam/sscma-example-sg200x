@@ -2,17 +2,6 @@
  * @file main.cpp
  * @brief reCamera 手势识别入口：物理地址 mmap 零拷贝 cv::Mat + skip_interval 帧复用 + UDP 推流。
  *
- * 当前实现（暂不使用硬件缩放 kWindow，改用软件 letterbox）：
- *   1) CH0 kPhysical=1，frame.data 即物理地址；通过 CVI_SYS_Mmap 映射成虚拟地址，
- *      构造零拷贝 cv::Mat 头交给 detector/landmarker 内部做软件 letterbox/warp。
- *      相比「整帧 memcpy」，mmap 只建立页表映射，省掉 640×480×3≈900KB 的逐帧拷贝。
- *   2) skip_interval：每 N 帧推理一次，其他帧复用上次结果（multi=3, single=1）。
- *      大幅提高吞吐，同时消除「框滞后于画面」（推理与显示同帧）。
- *
- * 说明：face_udp 的 kWindow=640×640 硬件缩放可用，因为 640×640 在 VPSS 缩放器
- * 支持尺寸范围内；而 palm 模型需要的 192×192 低于 VPSS 最小缩放分辨率，会被
- * 驱动静默忽略并回退到 sensor 原生分辨率（640×480）。故暂用软件 letterbox。
- *
  * 命令行：
  *   ./hand_gesture <palm.cvimodel> <landmark.cvimodel> <embedder.cvimodel> <classifier.cvimodel>
  *                  [min_score] [udp_ip] [udp_port] [jpeg_w] [jpeg_h] [jpeg_fps]

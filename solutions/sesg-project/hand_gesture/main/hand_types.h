@@ -2,8 +2,6 @@
  * @file hand_types.h
  * @brief 手势识别公共数据结构：Palm / HandResult / UDPHandResult + 手势类别常量。
  *
- * 严格对齐 PC 端 `test_tflite_rtsp.py` 的后处理契约（见该文件 GESTURE_NAMES / HAND_CONNECTIONS）。
- * UDPHandResult 为 POD，C++/Python 双端对齐（小端，#pragma pack(1)），用于 SesgJpegUdpStreamer 打包。
  */
 
 #pragma once
