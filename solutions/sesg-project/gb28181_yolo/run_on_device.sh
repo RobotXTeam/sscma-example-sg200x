@@ -17,7 +17,7 @@ if ! (ss -tln 2>/dev/null || netstat -tln 2>/dev/null) | grep -q 8554; then
   cd "$YOLODIR"
   printf 'recamera.1\n' | sudo -S env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib/3rd \
     nohup stdbuf -oL -eL ./rtmp_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel \
-    rtmp://127.0.0.1:1935/live/x 0.40 2 >/tmp/engine.log 2>&1 &
+    rtmp://127.0.0.1:1935/live/x 0.60 2 >/tmp/engine.log 2>&1 &
   sleep 8
 fi
 

@@ -50,7 +50,7 @@ reCamera (单进程 onvif_yolo)
 - 视频流：1280x720，H.264 Constrained Baseline，~26.7 FPS
 - YOLO11n 推理：~38 ms/帧（输入 640x640，INT8，cv181x NPU）
 - 跳帧：skip=2（每 2 帧推理 1 次）
-- 检测：办公室场景稳定检测 chair / tv / person 等，阈值 0.50
+- 检测：办公室场景稳定检测 chair / tv / person 等，阈值 0.60
 
 ONVIF 验收日志（seeed → 设备）：
 
@@ -79,7 +79,7 @@ ONVIF 验收日志（seeed → 设备）：
    - 修复：项目顶层 CMakeLists 显式 `set(CMAKE_CXX_FLAGS "... -std=gnu++17")`。
 
 4. **检测调参**
-   - 阈值 0.45 误检多（杂物误判 tv/chair）→ 提到 0.50，每帧框数从 5-7 降到真实的 1-2 个。
+   - 阈值 0.60 误检多（杂物误判 tv/chair）→ 提到 0.60，每帧框数从 5-7 降到真实的 1-2 个。
    - 补充 5x7 点阵文字标签（类别名 + 置信度），原 face_rtsp 仅有人脸 7 段数码管年龄。
 
 ## 6. 运维注意

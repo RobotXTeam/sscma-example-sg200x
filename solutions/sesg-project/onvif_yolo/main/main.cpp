@@ -13,7 +13,7 @@
  *   ./onvif_yolo <yolo11n_detection.cvimodel> [threshold] [skip] [rtsp_port] [rtsp_session] [onvif_port]
  *
  * 示例：
- *   sudo ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.45 2 8554 live 8080
+ *   sudo ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.60 2 8554 live 8080
  */
 
 #include <algorithm>
@@ -179,18 +179,18 @@ int main(int argc, char** argv) {
     if (argc < 2) {
         printf("Usage:\n");
         printf("  %s <yolo11n_detection.cvimodel> [threshold] [skip] [rtsp_port] [rtsp_session] [onvif_port]\n", argv[0]);
-        printf("    threshold    : detection threshold (default 0.45)\n");
+        printf("    threshold    : detection threshold (default 0.60)\n");
         printf("    skip         : infer every N frames (default 2)\n");
         printf("    rtsp_port    : RTSP server port (default 8554)\n");
         printf("    rtsp_session : RTSP path (default live)\n");
         printf("    onvif_port   : ONVIF SOAP HTTP port (default 8080)\n");
         printf("\nExample:\n");
-        printf("  sudo %s ./model/yolo11n_detection_cv181x_int8.cvimodel 0.45 2 8554 live 8080\n", argv[0]);
+        printf("  sudo %s ./model/yolo11n_detection_cv181x_int8.cvimodel 0.60 2 8554 live 8080\n", argv[0]);
         return -1;
     }
 
     const char* yolo_model_path = argv[1];
-    float threshold = (argc > 2) ? atof(argv[2]) : 0.50f;
+    float threshold = (argc > 2) ? atof(argv[2]) : 0.60f;
     int skip_interval = (argc > 3) ? atoi(argv[3]) : 2;
     int rtsp_port = (argc > 4) ? atoi(argv[4]) : DEFAULT_RTSP_PORT;
     const char* rtsp_session = (argc > 5 && strlen(argv[5]) > 0) ? argv[5] : DEFAULT_RTSP_SESSION;

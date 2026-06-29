@@ -127,7 +127,7 @@ scp model/*.cvimodel recamera@<device-ip>:/home/recamera/rtmp_yolo/model/
 ```bash
 cd /home/recamera/rtmp_yolo
 chmod +x rtmp_yolo run_rtmp.sh
-sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.50 2
+sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.60 2
 ```
 
 `run_rtmp.sh` 会同时启动检测引擎和 RTMP 推流。
@@ -137,7 +137,7 @@ sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.50 2
 | 参数 | 描述 | 默认值 |
 |------|------|--------|
 | rtmp_url | 目标 RTMP 地址 | rtmp://127.0.0.1:1935/live/recamera |
-| threshold | 检测置信度阈值 | 0.50 |
+| threshold | 检测置信度阈值 | 0.60 |
 | skip | 每 N 帧推理 1 次 | 2 |
 
 :::warning

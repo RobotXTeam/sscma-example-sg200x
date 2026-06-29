@@ -8,10 +8,10 @@
 # 用法：
 #   sudo ./run_rtmp.sh <rtmp_url> [threshold] [skip]
 # 示例：
-#   sudo ./run_rtmp.sh rtmp://192.168.2.113:1935/live/recamera 0.50 2
+#   sudo ./run_rtmp.sh rtmp://192.168.2.113:1935/live/recamera 0.60 2
 
 RTMP_URL="${1:-rtmp://127.0.0.1:1935/live/recamera}"
-THRESHOLD="${2:-0.50}"
+THRESHOLD="${2:-0.60}"
 SKIP="${3:-2}"
 
 DIR="$(cd "$(dirname "$0")" && pwd)"

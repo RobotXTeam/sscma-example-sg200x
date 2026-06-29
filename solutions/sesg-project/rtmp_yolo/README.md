@@ -74,7 +74,7 @@ sudo /etc/init.d/S93sscma-supervisor stop
 # 3) 一键启动（检测引擎 + RTMP relay）
 cd /home/recamera/rtmp_yolo
 chmod +x rtmp_yolo run_rtmp.sh
-sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.50 2
+sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.60 2
 ```
 
 ### run_rtmp.sh 参数
@@ -82,7 +82,7 @@ sudo ./run_rtmp.sh rtmp://<srs-ip>:1935/live/recamera 0.50 2
 | 位置 | 参数 | 说明 | 默认 |
 |------|------|------|------|
 | 1 | rtmp_url | 目标 RTMP 地址 | rtmp://127.0.0.1:1935/live/recamera |
-| 2 | threshold | 检测置信度阈值 | 0.50 |
+| 2 | threshold | 检测置信度阈值 | 0.60 |
 | 3 | skip | 每 N 帧推理 1 次 | 2 |
 
 > 关闭用 `Ctrl-C` / `kill -TERM`，会优雅停止 ffmpeg relay 和检测引擎并释放 VPSS。**不要 `kill -9`**（残留 VPSS 需 reboot）。

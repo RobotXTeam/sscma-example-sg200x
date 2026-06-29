@@ -69,7 +69,7 @@ sudo /etc/init.d/S93sscma-supervisor stop
 # 3) 运行
 cd /home/recamera/onvif_yolo
 sudo env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib/3rd:$LD_LIBRARY_PATH \
-  ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.50 2 8554 live 8080
+  ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.60 2 8554 live 8080
 ```
 
 ### 参数
@@ -77,7 +77,7 @@ sudo env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib
 | 位置 | 参数 | 说明 | 默认 |
 |------|------|------|------|
 | 1 | model | YOLO11n 检测 `.cvimodel` 路径 | 必填 |
-| 2 | threshold | 检测置信度阈值 | 0.50 |
+| 2 | threshold | 检测置信度阈值 | 0.60 |
 | 3 | skip | 每 N 帧推理 1 次 | 2 |
 | 4 | rtsp_port | RTSP 端口 | 8554 |
 | 5 | rtsp_session | RTSP path | live |

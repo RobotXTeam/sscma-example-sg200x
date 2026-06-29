@@ -12,7 +12,7 @@
  *   ./rtmp_yolo <yolo11n_detection.cvimodel> <rtmp_url> [threshold] [skip]
  *
  * 示例：
- *   sudo ./rtmp_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel rtmp://192.168.2.113:1935/live/recamera 0.50 2
+ *   sudo ./rtmp_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel rtmp://192.168.2.113:1935/live/recamera 0.60 2
  */
 
 #include <algorithm>
@@ -181,16 +181,16 @@ int main(int argc, char** argv) {
         printf("Usage:\n");
         printf("  %s <yolo11n_detection.cvimodel> <rtmp_url> [threshold] [skip]\n", argv[0]);
         printf("    rtmp_url     : e.g. rtmp://192.168.2.113:1935/live/recamera\n");
-        printf("    threshold    : detection threshold (default 0.50)\n");
+        printf("    threshold    : detection threshold (default 0.60)\n");
         printf("    skip         : infer every N frames (default 2)\n");
         printf("\nExample:\n");
-        printf("  sudo %s ./model/yolo11n_detection_cv181x_int8.cvimodel rtmp://192.168.2.113:1935/live/recamera 0.50 2\n", argv[0]);
+        printf("  sudo %s ./model/yolo11n_detection_cv181x_int8.cvimodel rtmp://192.168.2.113:1935/live/recamera 0.60 2\n", argv[0]);
         return -1;
     }
 
     const char* yolo_model_path = argv[1];
     const char* rtmp_url = argv[2];
-    float threshold = (argc > 3) ? atof(argv[3]) : 0.50f;
+    float threshold = (argc > 3) ? atof(argv[3]) : 0.60f;
     int skip_interval = (argc > 4) ? atoi(argv[4]) : 2;
     if (skip_interval < 1) skip_interval = 1;
 

@@ -186,7 +186,7 @@ SSH 登录 reCamera 并运行：
 cd /home/recamera/onvif_yolo
 chmod +x onvif_yolo
 sudo env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib/3rd:$LD_LIBRARY_PATH \
-  ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.50 2 8554 live 8080
+  ./onvif_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel 0.60 2 8554 live 8080
 ```
 
 #### 参数说明
@@ -194,7 +194,7 @@ sudo env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib
 | 参数 | 描述 | 默认值 |
 |------|------|--------|
 | `model` | YOLO11n 检测模型路径 | 必填 |
-| `threshold` | 检测置信度阈值 | 0.50 |
+| `threshold` | 检测置信度阈值 | 0.60 |
 | `skip` | 每 N 帧推理 1 次 | 2 |
 | `rtsp_port` | RTSP 端口 | 8554 |
 | `rtsp_session` | RTSP path | live |
@@ -213,7 +213,7 @@ sudo env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib
 ```text
 ========== ONVIF + YOLO AI IPC ==========
 YOLO model : ./model/yolo11n_detection_cv181x_int8.cvimodel
-threshold  : 0.50 | skip: 2
+threshold  : 0.60 | skip: 2
 RTSP       : :8554/live
 ONVIF SOAP : :8080
 =========================================
