@@ -1,0 +1,63 @@
+GB/T 28181 reCamera 设备端 demo - 验收记录
+=================================================
+
+日期: 2026-06-11
+设备: reCamera (RISC-V riscv64 musl, cv181x) @ 192.168.2.249
+平台: SRS 5.0.213 (容器 srs-gb) @ 192.168.2.113, host 网络
+       SIP TCP 5060, 媒体 GB-TCP 9000, HTTP-API 1985, HTTP-FLV 8080
+
+结论: 端到端跑通。reCamera 上 YOLO11n 检测框(RGN/OSD 硬件叠加)的 H.264
+      经 PS(Program Stream)/RTP-over-TCP 推到 SRS GB28181，SRS 转 RTMP，
+      录制的 mp4 关键帧中可见红色 YOLO 检测框。
+
+里程碑验证
+----------
+1. SIP REGISTER 成功
+   gb.log: "[sip] *** REGISTER SUCCESS ***"
+   SRS 域 34020000002000000001, realm 3402000000, 无鉴权(SRS5 简化版)
+   设备 GB 编码 34020000001320000001
+
+2. INVITE 应答成功
+   SRS 主动 INVITE (recvonly, m=video 9000 TCP/RTP/AVP 96, y=ssrc)
+   设备回 100 Trying + 200 OK(SDP: sendonly, a=setup:active, PS/90000, y=ssrc)
+   SRS 日志: state Inviting->Trying->Stable
+
+3. 媒体到达 SRS
+   设备从 rtsp://127.0.0.1:8554/live 拉带框 H.264，
+   手写 MPEG-PS 封装(pack header/system header/PSM/PES) -> RTP(PT=96)
+   -> RFC4571 2字节长度前缀 -> TCP 连到 SRS 9000(设备 active 主动连接)。
+   SRS 日志: media packs 持续增长(5799+), drop=0,
+            识别 H264 Baseline 1280x720, publish RTMP active=true。
+
+4. 检测框可见(成功标准)
+   SRS HTTP-FLV 录制 mp4，提取关键帧，编程检测红色 OSD 框像素
+   (参考色 ~224,32,32)：gb_boxes_03/05/06/07/08.jpg 均含数百~上千红色框像素。
+
+证据文件
+--------
+evidence/video/gb28181_srs_with_boxes.mp4   - 含检测框的 20s 录制(373帧 H264 1280x720)
+evidence/video/gb28181_srs_capture_18s.mp4  - 早期 18s 录制(450帧)
+evidence/video/gb28181_srs_capture.mp4      - 首次 12s 录制(300帧)
+evidence/image/gb_boxes_0{3,5,6,7,8}.jpg    - 关键帧, 含红色 YOLO 检测框
+evidence/srs_streams_api.json               - SRS /api/v1/streams 快照(H264 Baseline 1280x720)
+
+实现/构建
+--------
+源码:   src/gb28181_client.c  (eXosip2/osip2, 手写 PS muxer + RTP/TCP 发送)
+构建:   src/build.sh          (在 seeed 交叉编译, riscv64-unknown-linux-musl-gcc)
+运行:   src/run_on_device.sh  (设备端: 停服务->起YOLO引擎->起gb28181_client)
+依赖库: libosip2 5.3.1 / libeXosip2 5.3.0 交叉编译, 放设备 lib/;
+        libcares/libssl/libcrypto 设备自带。
+
+遇到的坑
+--------
+1. ffmpeg 子进程继承了膨胀的 LD_LIBRARY_PATH，加载到不匹配的 libavfilter.so.7
+   报符号缺失而退出。修复: popen 命令前 "unset LD_LIBRARY_PATH"，让 ffmpeg 用自带 rpath。
+2. SRS 起初 packs=0：媒体线程因 RTSP 源未就绪立即退出。先确认 YOLO 引擎
+   监听 8554 再起 client。
+3. HTTP-FLV 录制需在关键帧处接入，否则 "Could not write header"。
+   用重试循环 + 大 probesize 解决。
+4. 检测框只在 YOLO 检出目标时由 OSD 叠加绘制；场景无目标时画面无框。
+   降低引擎置信度阈值到 0.25 并确保画面有人/物，即可稳定出框。
+5. 引擎重启会断开 RTSP，media 线程退出且当前实现不自动重连媒体；
+   引擎重启后需重启 gb28181_client 触发新 INVITE。

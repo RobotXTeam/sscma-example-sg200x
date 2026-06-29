@@ -1,241 +1,152 @@
----
-title: 使用 reCamera 的 GB/T 28181 国标 AI 摄像机演示
-description: 本文档介绍了使用 reCamera 的基于 AI 的 GB/T 28181 国标视频监控演示，展示了 YOLO11n 实时目标检测 + 设备端硬件画框 + 国标 SIP 注册/点播 + PS/RTP 推流到国标平台的完整链路。
-keywords:
-  - GB28181
-  - GBT28181
-  - YOLO
-  - AI IPC
-  - SRS
-  - reCamera
-  - AI Edge Vision
-slug: /recamera_gb28181_yolo
-sku: 102991897,102991896
-image: https://files.seeedstudio.com/wiki/reCamera/gb28181_yolo/demo.gif
-sidebar_position: 32
-last_update:
-  date: 2026-06-11T00:00:00.000Z
-  author: Steven
-createdAt: '2026-06-11'
-updatedAt: '2026-06-11'
-url: https://wiki.seeedstudio.com/cn/recamera_gb28181_yolo/
----
+# gb28181_yolo
 
-# 使用 reCamera 的 GB/T 28181 国标 AI 摄像机演示
+reCamera 上的 **GB/T 28181 国标 AI 网络摄像机**演示：reCamera 作为符合国标的前端设备（IPC），向国标平台（SRS / WVP 等）注册，响应点播，把带 YOLO11n 检测框的 H.264 以 **PS(Program Stream) over RTP** 推送上去。
 
-## 简介
+GB/T 28181 是中国安防视频监控联网的国家标准，国标平台/NVR/视频专网普遍要求设备走 28181 接入。本 demo 让 reCamera 成为一台带 AI 检测的国标设备端。
 
-GB/T 28181 是中国安防视频监控联网的国家标准，国标平台、NVR、视频专网、雪亮工程等普遍要求前端设备通过 28181 协议接入。本演示让 reCamera 成为一台**符合 GB/T 28181 的 AI 国标摄像机**：设备向国标平台注册、响应点播（INVITE），把经 YOLO11n 实时检测、设备端硬件画框的 H.264 视频以国标要求的 **PS(Program Stream) over RTP** 方式推送到平台。
+## 架构
 
-本项目提供了一个开箱即用的演示，专注于以下应用功能：
-
-- **国标 SIP 接入**：SIP 注册、心跳保活、INVITE 点播应答（基于 eXosip2，走 TCP）。
-- **国标 PS/RTP 媒体**：手写 MPEG Program Stream 封装 + RTP 打包 + RFC4571 over TCP 推流。
-- **AI 目标检测**：YOLO11n（COCO 80 类），检测框 + 类别标签经设备端 RGN/OSD 硬件叠加烧进视频。
-
-<div align="center"><img width={600} src="https://files.seeedstudio.com/wiki/reCamera/gb28181_yolo/demo.gif" /></div>
-
-## 硬件准备
-
-要运行此演示，只需要**一台 reCamera 设备**。支持所有 reCamera 变体。
-
-<table align="center">
- <tr>
-  <th>reCamera 2002 系列</th>
-  <th>reCamera Gimbal</th>
-  <th>reCamera HQ PoE</th>
- </tr>
- <tr>
-  <td><div style={{textAlign:'center'}}><img src="https://files.seeedstudio.com/wiki/reCamera/recamera_banner.png" style={{width:300, height:'auto'}}/></div></td>
-  <td><div style={{textAlign:'center'}}><img src="https://files.seeedstudio.com/wiki/reCamera/Gimbal/reCamera-Gimbal.png" style={{width:300, height:'auto'}}/></div></td>
-  <td><div style={{textAlign:'center'}}><img src="https://files.seeedstudio.com/wiki/reCamera/reCamera_hq_poe/1-100029708-reCamera-2002-HQ-PoE-8GB.jpg" style={{width:300, height:'auto'}}/></div></td>
- </tr>
- <tr>
-  <td><div class="get_one_now_container" style={{textAlign: 'center'}}><a class="get_one_now_item" href="https://www.seeedstudio.com/reCamera-2002w-8GB-p-6250.html" target="_blank"><strong><span><font color={'FFFFFF'} size={"4"}> 立即购买 </font></span></strong></a></div></td>
-  <td><div class="get_one_now_container" style={{textAlign: 'center'}}><a class="get_one_now_item" href="https://www.seeedstudio.com/reCamera-gimbal-2002w-optional-accessories.html" target="_blank" rel="noopener noreferrer"><strong><span><font color={'FFFFFF'} size={"4"}> 立即购买 </font></span></strong></a></div></td>
-  <td><div class="get_one_now_container" style={{textAlign: 'center'}}><a class="get_one_now_item" href="https://www.seeedstudio.com/reCamera-2002-HQ-PoE-64GB-p-6557.html" target="_blank" rel="noopener noreferrer"><strong><span><font color={'FFFFFF'} size={"4"}> 立即购买 </font></span></strong></a></div></td>
- </tr>
-</table>
-
-## 软件准备
-
-- reCamera OS 0.2.3+（设备自带 ffmpeg）
-- 主机交叉编译工具链 + SG200X SDK
-- GB28181 国标平台：SRS 5（`--gb28181=on`）或 WVP-pro
-- SIP 库：osip2 5.3.1 + eXosip2 5.3.0（交叉编译）
-
-:::note
-本演示的模型文件和运行时 SIP 库已提供在 [Google Drive](https://drive.google.com/drive/folders/1GOQUMCel7fapbJCWzEEynDIvIt-6Wf5p?usp=drive_link)：
-
-- 模型：`/reCamera_Shared/Wiki/gb28181_yolo/model/yolo11n_detection_cv181x_int8.cvimodel`
-- 运行时库：`/reCamera_Shared/Wiki/gb28181_yolo/model/lib/`（libeXosip2/libosip2/libosipparser2）
-:::
-
-## 搭建演示
-
-### 步骤 1：搭建 GB28181 国标平台（SRS）
-
-```bash
-# srs.gb.conf 需启用 gb28181（sip listen 5060, media 9000, candidate=<srs-ip>）
-docker run -d --name srs-gb --network host \
-  -v /path/to/srs.gb.conf:/usr/local/srs/conf/srs.conf \
-  ossrs/srs:5 ./objs/srs -c conf/srs.conf
+```
+reCamera (gb28181_client + gb28181_engine)            国标平台 (SRS)
+┌────────────────────────────────────────┐
+│ 相机 → YOLO11n(NPU) → RGN/OSD 画框 → H264 │
+│   └→ gb28181_engine (本地 RTSP 8554/live) │
+│ ffmpeg 拉 RTSP → Annex-B 裸流              │
+│   ↓                                        │   SIP REGISTER (TCP 5060)
+│ gb28181_client:                            │ ──────────────────────────→ 注册
+│  · SIP(eXosip2/TCP) 注册+心跳+INVITE应答    │ ←──────────────────────────  INVITE
+│  · 手写 PS 封装 → RTP(PT=96)               │   PS/RTP over TCP (媒体 9000)
+│    → RFC4571 长度前缀 → TCP                │ ──────────────────────────→ 媒体
+└────────────────────────────────────────┘                              ↓
+                                              SRS 转 RTMP/HTTP-FLV: /live/<设备GBID>
+                                                         ↓ 拉流验收
+                                              ffplay / VLC / 国标客户端
 ```
 
-:::tip
-SRS 5 的 GB28181 走 **TCP**：SIP（5060）和媒体（9000）都是 TCP。
-:::
+检测框由设备端 RGN/OSD 硬件叠加烧进 H.264，PS 封装不重编码。
 
-### 步骤 2：配置 reCamera
+## 硬件 / 软件需求
 
-按官方入门指南完成配置：[reCamera 基本配置](https://wiki.seeedstudio.com/cn/recamera_getting_started/)
+- reCamera 一台（reCamera OS 0.2.3+，自带 ffmpeg）
+- 主机交叉编译工具链 `riscv64-unknown-linux-musl-` + SG200X SDK
+- GB28181 国标平台：SRS 5（`--gb28181=on`）/ WVP-pro 等
+- SIP 库：osip2 5.3.1 + eXosip2 5.3.0（交叉编译，见 build.sh）
 
-:::warning
-运行前停止占用相机的默认服务：
-:::
+## 模型与依赖库下载
+
+模型和运行时 SIP 库不放 GitHub，从 Google Drive 下载：
+
+- Google Drive 根目录：<https://drive.google.com/drive/folders/1GOQUMCel7fapbJCWzEEynDIvIt-6Wf5p?usp=drive_link>
+- 模型路径：`/reCamera_Shared/Wiki/gb28181_yolo/model/`
+  - `yolo11n_detection_cv181x_int8.cvimodel`（COCO 80 类，设备自带）
+- 运行时库路径：`/reCamera_Shared/Wiki/gb28181_yolo/model/lib/`
+  - `libeXosip2.so.15` / `libosip2.so.15` / `libosipparser2.so.15`（riscv64-musl）
+
+> `libcares` / `libssl` / `libcrypto` 设备自带，无需下载。
+
+## 快速运行（开箱即跑，无需编译）
+
+从 Google Drive 拉运行包（含可执行 + SIP 运行时库，无需自己编译 eXosip2/osip2 和底层引擎）：
+
+- 运行包：`/reCamera_Shared/Wiki/gb28181_yolo/run/`（包含 `gb28181_client`, `gb28181_engine` + `lib/`(SIP 库) + `run_on_device.sh` + `README.md`）
+- 模型：`/reCamera_Shared/Wiki/gb28181_yolo/model/`
+
+按 `run/README.md` 跑即可（注意给 `lib/` 重建软链）。
+
+## 交叉编译
+
+### 1) 编译 SIP 库（osip2 + eXosip2）
 
 ```bash
-sudo /etc/init.d/S03node-red stop
-sudo /etc/init.d/S91sscma-node stop
-sudo /etc/init.d/S93sscma-supervisor stop
+export PATH=<toolchain>/bin:$PATH
+SR=<sysroot>
+PREFIX=<install-prefix>
+# osip2 5.3.1 (ftp.gnu.org/gnu/osip/)
+./configure --host=riscv64-unknown-linux-musl CC=riscv64-unknown-linux-musl-gcc --prefix=$PREFIX --enable-shared --disable-static
+make -j4 && make install
+# eXosip2 5.3.0 (download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz)
+export osip2_CFLAGS="-I$PREFIX/include" osip2_LIBS="-L$PREFIX/lib -losip2 -losipparser2"
+./configure --host=riscv64-unknown-linux-musl CC=riscv64-unknown-linux-musl-gcc --prefix=$PREFIX --enable-shared --disable-static \
+  CPPFLAGS="-I$PREFIX/include -I$SR/usr/include" LDFLAGS="-L$PREFIX/lib -L$SR/usr/lib" LIBS="-lcares -lssl -lcrypto"
+make -j4 && make install
 ```
 
-### 步骤 3：下载模型/库和代码
+### 2) 编译底层的 YOLO 推理引擎 (C++)
 
 ```bash
-git clone https://github.com/RobotXTeam/sscma-example-sg200x.git
-cd sscma-example-sg200x/solutions/sesg-project/gb28181_yolo
-mkdir -p model model/lib
-# 从 Google Drive 下载 cvimodel 到 model/，SIP 库到 model/lib/
-```
-
-### 步骤 4：交叉编译
-
-先编译 SIP 库（osip2 5.3.1 + eXosip2 5.3.0），再编译客户端：
-
-```bash
+export SG200X_SDK_PATH=<SDK路径>
 export PATH=<工具链路径>/bin:$PATH
-./build.sh    # 产物：gb28181_client
+cd solutions/sesg-project/gb28181_yolo
+rm -rf build && mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ../src
+make -j$(nproc)
+# 产物: build/gb28181_engine
 ```
 
-详细的 SIP 库交叉编译命令见仓库 README。
-
-### 步骤 5：部署到 reCamera
+### 3) 编译国标 SIP 客户端 (C)
 
 ```bash
-scp gb28181_client run_on_device.sh recamera@<device-ip>:/home/recamera/gb28181_yolo/
-scp model/lib/lib*.so.* recamera@<device-ip>:/home/recamera/gb28181_yolo/lib/
+cd solutions/sesg-project/gb28181_yolo/src
+./build.sh    # 见脚本，链接 eXosip2/osip2/cares/ssl/crypto
+# 产物: gb28181_client
 ```
 
-### 步骤 6：运行演示
+## 部署与运行
 
 ```bash
+# 上传推流客户端、引擎、SIP 库、启动脚本到 reCamera
+scp build/gb28181_engine src/gb28181_client src/run_on_device.sh recamera@<device-ip>:/home/recamera/gb28181_yolo/
+scp <PREFIX>/lib/lib{eXosip2,osip2,osipparser2}.so.* recamera@<device-ip>:/home/recamera/gb28181_yolo/lib/
+
+# 一键启动（停服务 → 起 YOLO 引擎 → 起 GB28181 客户端）
 cd /home/recamera/gb28181_yolo
 chmod +x gb28181_client run_on_device.sh
 sudo ./run_on_device.sh
 ```
 
-`run_on_device.sh` 会停服务、起 YOLO 引擎（本地 RTSP）、起 GB28181 客户端。
-
-#### 客户端参数
+### gb28181_client 参数
 
 ```
 ./gb28181_client <设备GBID> <平台IP> <平台SIP端口> <设备IP> <平台GBID> <RTSP地址>
+# 例：
+./gb28181_client 34020000001320000001 192.168.2.113 5060 192.168.2.249 \
+  34020000002000000001 rtsp://127.0.0.1:8554/live
 ```
 
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| 设备GBID | 本设备 20 位国标编码 | 34020000001320000001 |
-| 平台IP / SIP端口 | 国标平台地址 | 192.168.2.113 / 5060 |
-| 设备IP | 本设备 IP | 192.168.2.249 |
-| 平台GBID | 平台 SIP 域 | 34020000002000000001 |
-| RTSP地址 | 本地带框 H.264 源 | rtsp://127.0.0.1:8554/live |
+> 关闭用 `Ctrl-C` / `kill -TERM`。**不要 `kill -9`** YOLO 引擎（残留 VPSS 需 reboot）。
 
-:::warning
-关闭用 `Ctrl-C` / `kill -TERM`。**不要 `kill -9`** YOLO 引擎（残留 VPSS 需重启设备）。
-:::
-
-## 预期输出
-
-### 在 reCamera 终端上
-
-```text
-[sip] *** REGISTER SUCCESS ***
-[sip] INVITE received -> 200 OK (SDP: PS/90000, ssrc=...)
-[media] PS/RTP over TCP -> <srs-ip>:9000
-```
-
-### 在国标平台 / PC 端
-
-SRS 把国标流转成 RTMP / HTTP-FLV，stream 名为设备 GBID：
+## 搭建 SRS 国标平台（验收端）
 
 ```bash
+# srs.conf 启用 gb28181 (sip 5060, media 9000, candidate=<srs-ip>)
+docker run -d --name srs-gb --network host \
+  -v /path/to/srs.gb.conf:/usr/local/srs/conf/srs.conf \
+  ossrs/srs:5 ./objs/srs -c conf/srs.conf
+```
+
+注意：SRS 5 的 GB28181 走 **TCP**（SIP 5060 + 媒体 9000 都是 TCP）。
+
+## PC 端验收
+
+```bash
+# SRS 把国标流转成 RTMP / HTTP-FLV，stream 名为设备 GBID
 ffplay rtmp://<srs-ip>:1935/live/34020000001320000001
 ffplay http://<srs-ip>:8080/live/34020000001320000001.flv
 
 # 查看注册和流状态
 curl http://<srs-ip>:1985/api/v1/streams/
-# 应看到 name=34020000001320000001, codec H264 1280x720, active=true
 ```
 
-<div align="center"><img width={600} src="https://files.seeedstudio.com/wiki/reCamera/gb28181_yolo/demo.gif" /></div>
+## 证据
 
-### 证据文件
+- Google Drive 根目录：<https://drive.google.com/drive/folders/1GOQUMCel7fapbJCWzEEynDIvIt-6Wf5p?usp=drive_link>
+- 证据图片：`/reCamera_Shared/Wiki/gb28181_yolo/evidence/image/`（demo.gif、frame_detection_*.png、gb28181_acceptance.txt）
+- 证据视频：`/reCamera_Shared/Wiki/gb28181_yolo/evidence/video/gb28181_yolo_demo.mp4`
 
-- Google Drive 根目录：[Google Drive](https://drive.google.com/drive/folders/1GOQUMCel7fapbJCWzEEynDIvIt-6Wf5p?usp=drive_link)
-- 证据图片：`/reCamera_Shared/Wiki/gb28181_yolo/evidence/image/`
-- 证据视频：`/reCamera_Shared/Wiki/gb28181_yolo/evidence/video/`
+## 实现说明与已知问题
 
-关键文件：
-
-- `demo.gif` - 演示动图（带检测框）
-- `frame_detection_01.png` / `frame_detection_bright.png` - 检测关键帧
-- `gb28181_yolo_demo.mp4` - 国标平台拉流录制视频
-- `gb28181_acceptance.txt` - 国标注册/点播/媒体验收日志
-
-## 故障排查
-
-### 注册失败
-
-- 确认平台 SIP 端口（SRS 5 是 TCP 5060）可达，设备 GBID/域编码正确
-- 对接需鉴权的平台（如 WVP）需补 SIP MD5 摘要鉴权（SRS5 简化版无需）
-
-### 点播无流 / 平台收不到媒体
-
-- SRS 5 媒体走 TCP 9000，确认可达
-- 看客户端日志 INVITE 是否应答、媒体线程是否启动
-- `curl http://<srs-ip>:1985/api/v1/streams/` 看平台是否登记流
-
-### 画面无检测框
-
-- 画面需有 COCO 80 类目标才画框；暗光场景可降低阈值
-
-### `CVI_VPSS_CreateGrp failed`
-
-上次 `kill -9` 残留 VPSS，`sudo reboot` 后重来。
-
-## 安全说明
-
-GB/T 28181 的 SIP 信令和 PS/RTP 媒体在本演示中为明文，仅适用于可信视频专网/局域网演示。生产部署请遵循国标的设备鉴权、SIP digest、媒体加密（如需）和网络隔离要求。
-
-## 恢复服务
-
-```bash
-sudo /etc/init.d/S03node-red start
-sudo /etc/init.d/S91sscma-node start
-curl -sS http://127.0.0.1/api/version
-```
-
-## 技术支持与产品讨论
-
-感谢您选择我们的产品！如果您需要特定定制目标的指导或想要进一步扩展工作流，请随时联系我们。
-
-<div class="button_tech_support_container">
-<a href="https://forum.seeedstudio.com/" class="button_forum"></a>
-<a href="https://www.seeedstudio.com/contacts" class="button_email"></a>
-</div>
-
-<div class="button_tech_support_container">
-<a href="https://discord.gg/eWkprNDMU7" class="button_discord"></a>
-<a href="https://github.com/Seeed-Studio/wiki-documents/discussions/69" class="button_discussion"></a>
-</div>
+- **PS 封装为手写**（MPEG Program Stream：pack header 0xBA + system header 0xBB + PSM 0xBC + PES 0xE0），ffmpeg 仅用于把 RTSP 转成 Annex-B 裸流。
+- SIP 鉴权：SRS 5 简化版无需鉴权（密码为空）；对接需鉴权的平台（如 WVP）需补 MD5 摘要。
+- SRS 端偶发 `write_h264_ipb_frame errno=11` 是 EAGAIN 流控回退，非致命，不影响录制画面。
+- 媒体线程暂不自动重连：YOLO 引擎重启导致 RTSP 断开后，需重启客户端触发新 INVITE（后续可加断线重连）。
+- 安全：GB28181 信令/媒体为明文，仅适用于可信专网；生产需按国标做鉴权与网络隔离。

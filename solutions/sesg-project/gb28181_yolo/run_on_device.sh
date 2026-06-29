@@ -5,8 +5,6 @@
 # Usage: run_on_device.sh
 set -e
 GBDIR=/home/recamera/gb28181_yolo
-YOLODIR=/home/recamera/rtmp_yolo
-
 # 1) stop camera-occupying services
 printf 'recamera.1\n' | sudo -S /etc/init.d/S03node-red stop 2>/dev/null || true
 printf 'recamera.1\n' | sudo -S /etc/init.d/S91sscma-node stop 2>/dev/null || true
@@ -14,9 +12,9 @@ printf 'recamera.1\n' | sudo -S /etc/init.d/S93sscma-supervisor stop 2>/dev/null
 
 # 2) start YOLO engine if RTSP 8554 not up
 if ! (ss -tln 2>/dev/null || netstat -tln 2>/dev/null) | grep -q 8554; then
-  cd "$YOLODIR"
+  cd "$GBDIR"
   printf 'recamera.1\n' | sudo -S env LD_LIBRARY_PATH=/mnt/system/lib:/mnt/system/usr/lib:/mnt/system/usr/lib/3rd \
-    nohup stdbuf -oL -eL ./rtmp_yolo ./model/yolo11n_detection_cv181x_int8.cvimodel \
+    nohup stdbuf -oL -eL ./gb28181_engine ./model/yolo11n_detection_cv181x_int8.cvimodel \
     rtmp://127.0.0.1:1935/live/x 0.60 2 >/tmp/engine.log 2>&1 &
   sleep 8
 fi
