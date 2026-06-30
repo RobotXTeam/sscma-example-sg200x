@@ -6,6 +6,8 @@
 // 每个字形用 5 个 byte 表示 5 列，每列低 7 bit 表示 7 行（bit0=顶行）。
 // 用于把检测类别名渲染成 RGN/OSD 上的填充小矩形（设备端硬件叠加，无需 OpenCV）。
 
+namespace sesg {
+namespace osd {
 namespace font5x7 {
 
 struct Glyph {
@@ -66,4 +68,6 @@ inline const uint8_t* columns(char c) {
     return kGlyphs[0].col;  // space
 }
 
-}  // namespace font5x7
+}
+}
+}  // namespace sesg::osd::font5x7

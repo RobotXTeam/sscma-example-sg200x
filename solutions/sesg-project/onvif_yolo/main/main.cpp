@@ -40,7 +40,7 @@ extern "C" {
 
 #include "coco_labels.h"
 #include "detector_utils.h"
-#include "font5x7.h"
+#include "sesg/osd_utils.hpp"
 #include "onvif_service.h"
 
 using namespace ma;
@@ -90,91 +90,6 @@ static void apply_low_latency_defaults(video_ch_index_t ch, uint32_t fps, const 
 static std::atomic<bool> g_running(true);
 static void sig_handler(int) { g_running.store(false); }
 
-// 按类别 id 取一个稳定的醒目颜色（ARGB8888）。
-static inline uint32_t color_for_class(int cls) {
-    static const uint32_t kPalette[8] = {
-        0xFFFF3030u, 0xFF30FF30u, 0xFF3080FFu, 0xFFFFD030u,
-        0xFFFF30FFu, 0xFF30FFFFu, 0xFFFF8030u, 0xFF80FF30u,
-    };
-    if (cls < 0) cls = 0;
-    return kPalette[cls % 8];
-}
-
-// 追加一个"填充小矩形"到 overlay 列表（归一化坐标）。利用 thickness≈min(w,h) 让边框退化成填充。
-static inline void push_filled_px(std::vector<sesg::stream_rtsp::OverlayRect>& out,
-                                  int px, int py, int pw, int ph, uint32_t argb) {
-    if (pw <= 0 || ph <= 0) return;
-    if (px >= (int)OVERLAY_W || py >= (int)OVERLAY_H) return;
-    if (px + pw <= 0 || py + ph <= 0) return;
-    sesg::stream_rtsp::OverlayRect r;
-    r.x = (float)px / (float)OVERLAY_W;
-    r.y = (float)py / (float)OVERLAY_H;
-    r.w = (float)pw / (float)OVERLAY_W;
-    r.h = (float)ph / (float)OVERLAY_H;
-    r.argb = argb;
-    r.thickness = (uint16_t)std::max(1, std::min(pw, ph));  // 退化成填充
-    out.push_back(r);
-}
-
-// 在 (px,py) 处用 5x7 点阵渲染一段文字（每个点放大成 scale×scale 像素块）。
-// 返回渲染宽度（像素）。文字直接以填充小矩形进 RGN overlay。
-static int draw_text_px(std::vector<sesg::stream_rtsp::OverlayRect>& out, int px, int py,
-                        const char* text, uint32_t argb, int scale) {
-    int cx = px;
-    for (const char* p = text; *p; ++p) {
-        const uint8_t* cols = font5x7::columns(*p);
-        for (int c = 0; c < 5; ++c) {
-            for (int row = 0; row < 7; ++row) {
-                if (cols[c] & (1u << row)) {
-                    push_filled_px(out, cx + c * scale, py + row * scale, scale, scale, argb);
-                }
-            }
-        }
-        cx += 6 * scale;  // 5 列 + 1 列间距
-    }
-    return cx - px;
-}
-
-// 把一帧检测结果转换成 RTSP 通道的 RGN/OSD：检测框 + 类别文字标签。
-static void build_overlay_rects(const std::vector<detector_utils::Detection>& dets,
-                                std::vector<sesg::stream_rtsp::OverlayRect>& out) {
-    out.clear();
-    for (const auto& d : dets) {
-        const float x1 = d.x - d.w * 0.5f;
-        const float y1 = d.y - d.h * 0.5f;
-
-        sesg::stream_rtsp::OverlayRect r;
-        r.x = std::clamp(x1, 0.0f, 1.0f);
-        r.y = std::clamp(y1, 0.0f, 1.0f);
-        r.w = std::clamp(d.w, 0.0f, 1.0f);
-        r.h = std::clamp(d.h, 0.0f, 1.0f);
-        const uint32_t col = color_for_class(d.target);
-        r.argb = col;
-        r.thickness = 3;
-
-        if (r.w <= 0.0f || r.h <= 0.0f) continue;
-        if (r.x >= 1.0f || r.y >= 1.0f) continue;
-        if (r.x + r.w <= 0.0f || r.y + r.h <= 0.0f) continue;
-        out.push_back(r);
-
-        // 文字标签："CLASS NN"（类别名 + 置信度百分比），画在框左上角上方。
-        char label[40];
-        int pct = (int)(d.score * 100.0f + 0.5f);
-        if (pct > 99) pct = 99;
-        snprintf(label, sizeof(label), "%s %d", coco_label(d.target), pct);
-
-        const int scale = 2;            // 点阵放大倍数
-        const int text_h = 7 * scale;   // 文字高度
-        int tx = (int)(r.x * OVERLAY_W) + 1;
-        int ty = (int)(r.y * OVERLAY_H) - text_h - 2;  // 框上方
-        if (ty < 0) ty = (int)(r.y * OVERLAY_H) + 2;    // 贴顶时改画框内上沿
-
-        // 文字底色条（不透明深色，ARGB1555 只有 1bit alpha，必须用不透明），提升可读性。
-        int label_w = (int)strlen(label) * 6 * scale;
-        push_filled_px(out, tx - 1, ty - 1, label_w + 2, text_h + 2, 0xFF101010u);
-        draw_text_px(out, tx, ty, label, col, scale);
-    }
-}
 int main(int argc, char** argv) {
     if (argc < 2) {
         printf("Usage:\n");
@@ -358,7 +273,7 @@ int main(int argc, char** argv) {
             // 设备端叠加检测框到 RTSP 画面。
             if (rtsp_ok) {
                 std::vector<sesg::stream_rtsp::OverlayRect> rects;
-                build_overlay_rects(results, rects);
+                sesg::osd::build_overlay_rects(results, rects, [](int target) { return coco_label(target); }, OVERLAY_W, OVERLAY_H);
                 (void)streamer.updateOverlayRects(VIDEO_CH2, rects);
             }
 
